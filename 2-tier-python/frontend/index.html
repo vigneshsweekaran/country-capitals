@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 20 Countries, Capitals & Currencies (Dynamic)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font import for Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="container mx-auto p-6 bg-white rounded-xl shadow-2xl max-w-4xl w-full">
+        <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-8 tracking-tight">
+            Top 20 Countries, Capitals & Currencies
+        </h1>
+
+        <div class="overflow-x-auto rounded-lg shadow-md">
+            <table class="min-w-full bg-white border-collapse">
+                <thead class="bg-gray-200 border-b border-gray-300">
+                    <tr>
+                        <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider rounded-tl-lg">
+                            Country
+                        </th>
+                        <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                            Capital
+                        </th>
+                        <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider rounded-tr-lg">
+                            Currency
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="countries-table-body" class="divide-y divide-gray-200">
+                    <!-- Data will be dynamically loaded here by JavaScript -->
+                    <tr>
+                        <td colspan="3" class="text-center py-8 text-gray-500">Loading data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="error-message" class="mt-4 text-center text-red-600 font-semibold hidden">
+            Failed to load data. Please ensure the backend server is running.
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to fetch data from the Flask backend and populate the table
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('countries-table-body');
+            const errorMessage = document.getElementById('error-message');
+
+            // Asynchronous function to fetch data
+            async function fetchCountryData() {
+                try {
+                    // *** UPDATED URL: Now fetching from /api/countries relative to the Nginx server ***
+                    // Nginx will proxy this request to the Flask backend.
+                    const response = await fetch('/api/countries'); 
+
+                    if (!response.ok) {
+                        // If the HTTP response is not OK (e.g., 404, 500), throw an error
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const countries = await response.json(); // Parse the JSON response
+
+                    // Clear the "Loading data..." message
+                    tableBody.innerHTML = '';
+
+                    // Loop through the fetched data and create table rows
+                    countries.forEach(country => {
+                        const row = document.createElement('tr');
+                        row.classList.add('hover:bg-gray-50', 'transition-colors', 'duration-200');
+
+                        // Create table data cells for Country, Capital, and Currency
+                        const countryTd = document.createElement('td');
+                        countryTd.classList.add('py-4', 'px-6', 'text-gray-900', 'font-medium');
+                        countryTd.textContent = country.country;
+
+                        const capitalTd = document.createElement('td');
+                        capitalTd.classList.add('py-4', 'px-6', 'text-gray-700');
+                        capitalTd.textContent = country.capital;
+
+                        const currencyTd = document.createElement('td');
+                        currencyTd.classList.add('py-4', 'px-6', 'text-gray-700');
+                        currencyTd.textContent = country.currency;
+
+                        // Append cells to the row, and the row to the table body
+                        row.appendChild(countryTd);
+                        row.appendChild(capitalTd);
+                        row.appendChild(currencyTd);
+                        tableBody.appendChild(row);
+                    });
+                } catch (error) {
+                    // Log the error to the console for debugging
+                    console.error('Error fetching country data:', error);
+                    // Display a user-friendly error message on the page
+                    tableBody.innerHTML = ''; // Clear any loading message
+                    errorMessage.classList.remove('hidden'); // Show the error message
+                }
+            }
+
+            // Call the function to fetch data when the page loads
+            fetchCountryData();
+        });
+    </script>
+</body>
+</html>
